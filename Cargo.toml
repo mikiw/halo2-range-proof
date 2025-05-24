@@ -1,0 +1,10 @@
+[package]
+name = "halo2-range-proof"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+halo2_proofs  = { version = "0.3", features = ["kzg"] }
+halo2_gadgets = "0.3"
+pasta_curves  = "0.5"
+rand_core     = "0.6"

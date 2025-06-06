@@ -9,7 +9,7 @@ use rand_core::OsRng;
 use pasta_curves::pallas;
 use range::RangeCommitCircuit;
 
-fn main() {
+fn main_test() {
     // ---------------- public parameters -----------------
     let k = 8;                                        // 2^8 rows
     let params: ParamsKZG<pallas::Base> = ParamsKZG::new(k);

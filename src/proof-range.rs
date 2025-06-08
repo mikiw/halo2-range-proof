@@ -100,7 +100,35 @@ impl<F: PrimeField> InRangeChip<F> {
             |mut region| region.assign_advice(|| "upper", self.config.advice[1], 1, || upper_val),
         )?;
 
-        // Simple flag that is always 1 (for demo purposes)
+        // Check: number >= lower
+        let diff_lower_val = number.value().zip(lower.value()).map(|(n, l)| *n - *l);
+        let _diff_lower = layouter.assign_region(
+            || "diff_lower = number - lower",
+            |mut region| {
+                region.assign_advice(
+                    || "diff_lower",
+                    self.config.advice[0],
+                    1,
+                    || diff_lower_val,
+                )
+            },
+        )?;
+
+        // Check: number <= upper
+        let diff_upper_val = upper.value().zip(number.value()).map(|(u, n)| *u - *n);
+        let _diff_upper = layouter.assign_region(
+            || "diff_upper = upper - number",
+            |mut region| {
+                region.assign_advice(
+                    || "diff_upper",
+                    self.config.advice[1],
+                    2,
+                    || diff_upper_val,
+                )
+            },
+        )?;
+
+        // Simple flag always set to 1 (for demonstration)
         let flag = layouter.assign_region(
             || "dummy in‑range flag",
             |mut region| {
@@ -108,15 +136,15 @@ impl<F: PrimeField> InRangeChip<F> {
             },
         )?;
 
-        // Poseidon hash commitment of the input number
+        // Compute Poseidon hash commitment of the input number
         let poseidon = PoseidonHash::<F, PoseidonChip<F>, PoseidonSpec, ConstantLength<1>, 3, 2>::construct(self.config.poseidon_config.clone());
 
         let commitment = poseidon.hash(layouter.namespace(|| "hash number"), [number.clone()])?;
 
-        // Expose hash result as public input
+        // Expose the hash result as a public input
         layouter.constrain_instance(commitment.cell(), self.config.instance, 0)?;
 
-        // Expose the flag as the output
+        // Expose the flag as a circuit output
         layouter.assign_region(
             || "expose flag",
             |mut region| {
